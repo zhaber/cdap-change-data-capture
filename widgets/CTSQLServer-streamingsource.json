@@ -69,6 +69,12 @@
           "label": "Table Name",
           "name": "tableName",
           "description": "Table name for CT Information (Comma seperated for multiple tables)"
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Driver Class Name",
+          "name": "driverClassName",
+          "description": "Driver class name"
         }
       ]
     }
