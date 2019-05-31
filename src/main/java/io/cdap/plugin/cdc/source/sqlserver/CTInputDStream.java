@@ -35,7 +35,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -70,6 +69,16 @@ public class CTInputDStream extends InputDStream<StructuredRecord> {
 
   @Override
   public Option<RDD<StructuredRecord>> compute(Time validTime) {
+    try {
+      return doCompute();
+    } catch (Exception e) {
+      // Retry all exceptions (e.g. SQL Server deadlock exception)
+      LOG.info("Retrying exception: " + e.getMessage());
+      return doCompute();
+    }
+  }
+
+  private Option<RDD<StructuredRecord>> doCompute() {
     try (Connection connection = connectionFactory.getConnection()) {
       // get the table information of all tables which have ct enabled.
       List<TableInformation> tableInformations = getCTEnabledTables(connection, tableName);
@@ -90,8 +99,7 @@ public class CTInputDStream extends InputDStream<StructuredRecord> {
       // get all the data changes (DML) for the ct enabled tables till current tracking version
       for (TableInformation tableInformation : tableInformations) {
         if (tableInformation.getName().equals(tableName)) {
-          changeRDDs.add(getChangeData(tableInformation, prev, cur,
-                  requireSeqNumber));
+          changeRDDs.add(getChangeData(tableInformation, prev, cur, requireSeqNumber));
         }
       }
       // update the tracking version
@@ -141,6 +149,7 @@ public class CTInputDStream extends InputDStream<StructuredRecord> {
 
     //LOG.debug("Querying for change data with statement {}", stmt);
     //TODO Currently we are not partitioning the data. We should partition it for scalability
+
     return JdbcRDD.create(getJavaSparkContext(), connectionFactory, stmt, prev, cur, 1,
             new ResultSetToDMLRecord(tableInformation, requireSeqNumber));
   }
@@ -151,7 +160,6 @@ public class CTInputDStream extends InputDStream<StructuredRecord> {
     if (resultSet.next()) {
       changeVersion = resultSet.getLong(1);
       LOG.debug("Current tracking version is {}", changeVersion);
-
     }
     return changeVersion;
   }

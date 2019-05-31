@@ -20,7 +20,11 @@ import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.data.schema.Schema.Field;
 import io.cdap.cdap.api.data.schema.Schema.Type;
+import io.cdap.cdap.format.StructuredRecordStringConverter;
+import io.cdap.plugin.cdc.source.sqlserver.CTInputDStream;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
