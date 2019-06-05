@@ -70,7 +70,7 @@ public class CTInputDStream extends InputDStream<StructuredRecord> {
   @Override
   public Option<RDD<StructuredRecord>> compute(Time validTime) {
     Option<RDD<StructuredRecord>> result = Option.empty();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
       try {
         result = doCompute();
         break; // break first time the method executed successfully
