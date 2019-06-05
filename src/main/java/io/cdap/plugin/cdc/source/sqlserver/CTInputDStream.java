@@ -69,13 +69,22 @@ public class CTInputDStream extends InputDStream<StructuredRecord> {
 
   @Override
   public Option<RDD<StructuredRecord>> compute(Time validTime) {
-    try {
-      return doCompute();
-    } catch (Exception e) {
-      // Retry all exceptions (e.g. SQL Server deadlock exception)
-      LOG.info("Retrying exception: " + e.getMessage());
-      return doCompute();
+    Option<RDD<StructuredRecord>> result = Option.empty();
+    for (int i = 0; i < 10; i++) {
+      try {
+        result = doCompute();
+        break; // break first time the method executed successfully
+      } catch (Exception e) {
+        // Retry all exceptions (e.g. SQL Server deadlock exception)
+        LOG.info("Retrying exception: " + e.getMessage());
+        try {
+          Thread.sleep(60000);
+        } catch (InterruptedException ex) {
+          throw new RuntimeException(e);
+        }
+      }
     }
+    return result;
   }
 
   private Option<RDD<StructuredRecord>> doCompute() {
