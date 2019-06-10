@@ -104,25 +104,22 @@ public class CTSQLServer extends StreamingSource<StructuredRecord> {
   @Override
   public JavaDStream<StructuredRecord> getStream(StreamingContext context) throws Exception {
     context.registerLineage(conf.referenceName);
-    Connection connection;
     try {
       Class.forName(conf.getDriverClassName());
       if (conf.getUsername() != null && conf.getPassword() != null) {
         LOG.info("Creating connection with url {}, username {}, " +
                 "password *****", getConnectionString(), conf.getUsername());
-        connection = DriverManager.getConnection(getConnectionString(),
+        DriverManager.getConnection(getConnectionString(),
                 conf.getUsername(), conf.getPassword());
       } else {
         LOG.info("Creating connection with url {}", getConnectionString());
-        connection = DriverManager.getConnection(getConnectionString(), null, null);
+        DriverManager.getConnection(getConnectionString(), null, null);
       }
     } catch (Exception e) {
-      /*if (e instanceof SQLException) {
+      if (e instanceof SQLException) {
         LOG.error("Failed to establish connection with SQL Server with the given configuration.");
       }
-      throw e;*/
-      connection = DriverManager.getConnection(getConnectionString(),
-              conf.getUsername(), conf.getPassword());
+      throw e;
     }
     // get change information dtream. This dstream has both schema and data changes
     LOG.info("Creating change information dstream");
